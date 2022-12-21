@@ -6,7 +6,7 @@ There are 9 characteristics that need to be evaluated!
 
 These 9 characteristics are presented in the following link:
 
-[hhtp://ssabet.h
+[Questionnaire Instruction
 ](https://sssabet.github.io/Delay_Classification/)
 
 
