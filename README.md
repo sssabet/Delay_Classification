@@ -12,7 +12,7 @@ These 9 characteristics are presented in the following link:
 
 
 Furthermore, the repo consists of the methodology for quantifying new games, which you can demonstrate it with 30 sample video games in [study demonstration](https://sssabet.github.io/Delay_Classification/study) page. 
-For that do the following steps:
+You can edit the script to classifiy new games do the following steps:
 1. Add videos of the game in the Game folder.
 2. In the study.html file, add the number of new games that you want to evaluate
 'var nGames = "";'
