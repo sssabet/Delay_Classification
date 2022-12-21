@@ -1,0 +1,1046 @@
+﻿<head>
+    <title>Delay Sensetivity Classification</title>
+	<meta charset="UTF-8">
+	<script type="text/javascript" src="thefragebogen.js"></script>
+	<script type="text/javascript" src="query.js"></script>
+	<link href="style.css" rel="stylesheet" type="text/css" media="all">
+	
+	<!-- Questionnaire Settings -->
+	<script type="text/javascript">			
+		<!-- number of different games -->
+		var nGames = 30;
+		<!-- Conditions per game -->
+		var nConditions = 1;
+		<!-- enable tooltips -->
+		var useTooltips = false;
+	</script>	
+		
+	<!-- Help Functions -->
+	<script type="text/javascript">
+		<!-- shuffle function for randomization of items -->
+		function shuffle(a) {
+			var j, x, i;
+			for (i = a.length - 1; i > 0; i--) {
+				j = Math.floor(Math.random() * (i + 1));
+				x = a[i];
+				a[i] = a[j];
+				a[j] = x;
+			}
+			return a;
+		}
+		
+		<!-- save data in CSV -->
+		function exportToCsv(filename, rows) {
+			var processRow = function (row) {
+				var finalVal = '';
+				for (var j = 0; j < row.length; j++) {
+					var innerValue = row[j] === null ? '' : row[j].toString();
+					if (row[j] instanceof Date) {
+						innerValue = row[j].toLocaleString();
+					};
+					var result = innerValue.replace(/"/g, '""');
+					if (result.search(/("|,|\n)/g) >= 0)
+						result = '"' + result + '"';
+					if (j > 0)
+						finalVal += ',';
+					finalVal += result;
+				}
+				return finalVal + '\n';
+			};
+
+			var csvFile = '';
+			for (var i = 0; i < rows.length; i++) {
+				csvFile += processRow(rows[i]);
+			}
+
+			var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+			if (navigator.msSaveBlob) { // IE 10+
+				navigator.msSaveBlob(blob, filename);
+			} else {
+				var link = document.createElement("a");
+				if (link.download !== undefined) {
+					var url = URL.createObjectURL(blob);
+					link.setAttribute("href", url);
+					link.setAttribute("download", filename);
+					link.style.visibility = 'hidden';
+					document.body.appendChild(link);
+					link.click();
+					document.body.removeChild(link);
+				}
+			}
+		}
+		
+		<!-- sliding function for experience questionnaire -->
+		function plusSlides(n,z) {
+			if (((n==1) & (slideIndex[z] >= (z+1)*nItems)) | ((n==-1) & (slideIndex[z] <= (z*nItems + 1))))
+				n = 0;
+			slideIndex[z] += n;
+			showSlides();
+		}
+		
+		<!-- sliding function for scale explanation (training) scales -->
+		function plusTrainSlides(n) {
+			if (((n==1) & (TrainSlideIndex >= nItems)) | ((n==-1) & (TrainSlideIndex <= 1)))
+				n = 0;
+			TrainSlideIndex += n;
+			showTrainSlides();
+		}
+		
+		<!-- sliding function for post-test questionnaire -->
+		function plusPostTestSlides(n) {
+			if (((n==1) & (PostTestSlideIndex >= nPostTestItems)) | ((n==-1) & (PostTestSlideIndex <= 1)))
+				n = 0;
+			PostTestSlideIndex += n;
+			showPostTestSlides();
+		}
+		
+		<!-- show experience questionnaire scales / slides -->
+		function showSlides() {
+			var slides = document.getElementsByClassName("mySlides");
+			<!-- hide all on default -->
+			for (var j = 0; j < slides.length; j++) {
+				slides[j].style.display = "none";  
+			}
+			
+			<!-- show slide number n according to plusSlides function -->
+			for (var i = 0; i < (nConditions*nGames); i++){
+				slides[slideIndex[i]-1].style.display = "block";  
+				var counter = document.getElementById("newCounter" + i);
+				counter.innerHTML = slideIndex[i] - i*slides.length/(nConditions*nGames) + " / " + slides.length/(nConditions*nGames);
+			}
+		}
+		
+		<!-- show scale explanation (training) scales / slides -->
+		function showTrainSlides() {
+			var TrainSlides = document.getElementsByClassName("myTrainSlides");
+			<!-- hide all on default -->
+			for (var j = 0; j < TrainSlides.length; j++) {
+				TrainSlides[j].style.display = "none";  
+			}
+			
+			<!-- show slide number n according to plusSlides function -->
+			for (var i = 0; i < (nItems); i++){
+				TrainSlides[TrainSlideIndex - 1].style.display = "block";  
+				var counter = document.getElementById("TrainCounter");
+				counter.innerHTML = TrainSlideIndex + " / " + TrainSlides.length;
+			}
+		}
+		
+		<!-- show post-game questionnaire scales / slides -->
+		function showPostSlides() {
+			var PostSlides = document.getElementsByClassName("myPostGameSlides");
+			<!-- hide all on default -->
+			for (var j = 0; j < PostSlides.length; j++) {
+				PostSlides[j].style.display = "none";  
+			}
+			
+			<!-- show slide number n according to plusSlides function -->
+			for (var i = 0; i < nGames; i++){
+				PostSlides[slidePostIndex[i]-1].style.display = "block";  
+				var counter = document.getElementById("newPostGameCounter" + i);
+				counter.innerHTML = slidePostIndex[i] - i*PostSlides.length/nGames + " / " + PostSlides.length/nGames;
+			}
+		}
+		
+		<!-- show post-test questionnaire scales / slides -->
+		function showPostTestSlides() {
+			var PostTestSlides = document.getElementsByClassName("myPostTestSlides");
+			<!-- hide all on default -->
+			for (var j = 0; j < PostTestSlides.length; j++) {
+				PostTestSlides[j].style.display = "none";  
+			}
+			
+			<!-- show slide number n according to plusSlides function -->
+			for (var i = 0; i < (nPostTestItems); i++){
+				PostTestSlides[PostTestSlideIndex - 1].style.display = "block";  
+				var counter = document.getElementById("PostTestCounter");
+				counter.innerHTML = PostTestSlideIndex + " / " + PostTestSlides.length;
+			}
+		}
+		
+		<!-- delete default value of open post-test question -->		
+		function DeleteOpenAnswer()	{
+			OpenPostInput.setAttribute("value","");
+		}
+	</script>
+	
+	<!-- Questionnaire Information -->
+	<script type="text/javascript">				
+		var item_codes = ["DS", "TA", "SA", "PR", "DoF", "CQ", "IoA", "RA","FF","ToI"]; 
+		<!-- SA = Spacial Accuracy -->
+		<!-- TA = Temporal Accuracy -->
+		<!-- PR = Predictability -->
+		<!-- DoF = Degree of Freedom -->
+		<!-- CQ = Consequences  -->
+		<!-- IoA = Importance of Actions -->
+		<!-- RA = Number of required actions  -->
+		<!-- FF = Feedback Frequency -->
+		<!-- PN = PUNISHMENT -->
+		<!-- ToI = Type of Input -->
+
+	
+		var nItems = item_codes.length;
+		var questions = new Array(nItems);
+		var labels = new Array(nItems);
+
+		<!-- Game Characterstics -->
+		questions[0] = "How do you rate the Delay Sensetivity of this game?";
+		labels[0] = ["Low","High"];
+		questions[1] = "How do you judge the available time interval to perform the desired interaction in this game scenario?";
+		labels[1] = ["Unlimited","Long", "Moderate","Short","Extremely Short"];
+		questions[2] = "How much spatial accuracy is required to successfully perform an interaction in this game scenario?";
+		labels[2] = ["No Accuracy","Low","Moderate","High Accuracy"];
+		questions[3] = "How much are the events of this game scenario predictable for a player?";
+		labels[3] = ["Noting to Predict","Easy to Predict","Difficult to Predict","Not Predictable"];
+		questions[4] = "How many different input directions (DoF) are available in this game scenario?";
+		labels[4] = ["1","2","3","4","More than 4"];
+		questions[5] = "How strong are the negative consequences of an incorrect interaction in this game scenario?";
+		labels[5] = ["Low","Medium","High"];
+		questions[6] = "How much each input of this game can change the outcome?";
+		labels[6] = ["Low","Medium","High"];
+		questions[7] = ["How do you judge the number of require actions in this scenario?"];
+		labels[7] = ["Low","Moderate","High"];
+		questions[8] = "How often does the game scenario provide feedback to the player?";
+		labels[8] = ["Rarely","Sometimes","Very Often"];
+		questions[9] = "Which type of input is mostly used in this game scenario?";
+		labels[9] = ["Quasi-Continuous","Quasi-Continuous and Discrete","Only Discrete","Only Continuous","Continuous and Discrete"];
+		
+		
+		if (useTooltips){
+			var germanQuestions = new Array(nItems);
+			germanQuestions[0] = "Wie bewerten Sie die Gesamtqualität Ihrer Spielerfahrung?";
+			germanQuestions[1] = "Ich fühlte, dass ich die Kontrolle über meine Interaktion mit dem System hatte.";
+			germanQuestions[2] = "Ich bemerkte eine Verzögerung zwischen meinen Aktionen und den Ergebnissen.";
+			germanQuestions[3] = "Ich fühlte ein Gefühl der Kontrolle über die Spielschnittstelle und Eingabegeräte.";
+			germanQuestions[4] = "Die Reaktionsfähigkeit (Ansprechbarkeit) meiner Eingaben war wie erwartet.";
+			germanQuestions[5] = "Ich hatte die Kontrolle über meine Spielaktionen.";
+			germanQuestions[6] = "Ich erhielt unverzügliches Feedback zu meinen Aktionen erhalten.";
+			germanQuestions[7] = "Meine Eingaben wurden reibungslos angewandt.";
+			germanQuestions[8] = "Meine Eingaben wurden reibungslos angewandt.";
+			germanQuestions[9] = "Meine Eingaben wurden reibungslos angewandt.";
+		}
+		
+		<!-- Post-test questionnaire items -->
+		<!-- NOTE: change also in storeData() -->
+		var PostTestItem_codes = ["SAI","TAI","PRI", "DoFI","FFI","CQI","IoAI","RAI","ToII"];
+		shuffle(PostTestItem_codes);
+		PostTestItem_codes = PostTestItem_codes.concat(["Open"]);
+		var nPostTestItems = PostTestItem_codes.length;
+		var PostTestQuestions = new Array(nPostTestItems);
+		var PostTestLabels = new Array(nPostTestItems);
+		PostTestQuestions[PostTestItem_codes.indexOf("SAI")] = "How important is the aspect <b>Spacial Acuuracy</b> for you?";
+		PostTestLabels[PostTestItem_codes.indexOf("SAI")] = ["","Not Important","Slightly","Moderately","Important","Very Important",""];
+		PostTestQuestions[PostTestItem_codes.indexOf("TAI")] = "How important is the aspect <b>Temporal Acuuracy</b> for you?";
+		PostTestLabels[PostTestItem_codes.indexOf("TAI")] = ["","Not Important","Slightly","Moderately","Important","Very Important",""];
+		PostTestQuestions[PostTestItem_codes.indexOf("PRI")] = "How important is the aspect <b>Predictability</b> for you?";
+		PostTestLabels[PostTestItem_codes.indexOf("PRI")] = ["","Not Important","Slightly","Moderately","Important","Very Important",""];
+		PostTestQuestions[PostTestItem_codes.indexOf("DoFI")] = "How important is the aspect <b>Number of input Directions</b> for you?";
+		PostTestLabels[PostTestItem_codes.indexOf("DoFI")] = ["","Not Important","Slightly","Moderately","Important","Very Important",""];
+		PostTestQuestions[PostTestItem_codes.indexOf("FFI")] = "How important is the aspect <b>Feedback Frequency</b> for you?";
+		PostTestLabels[PostTestItem_codes.indexOf("FFI")] = ["","Not Important","Slightly","Moderately","Important","Very Important",""];
+		PostTestQuestions[PostTestItem_codes.indexOf("CQI")] = "How important is the aspect <b>Consequences</b> for you?";
+		PostTestLabels[PostTestItem_codes.indexOf("CQI")] = ["","Not Important","Slightly","Moderately","Important","Very Important",""];
+		PostTestQuestions[PostTestItem_codes.indexOf("IoAI")] = "How important is the aspect <b>Importance of Actions</b> for you?";
+		PostTestLabels[PostTestItem_codes.indexOf("IoAI")] = ["","Not Important","Slightly","Moderately","Important","Very Important",""];
+		PostTestQuestions[PostTestItem_codes.indexOf("RAI")] = "How important is the aspect <b>Number of Required Actions</b> for you?";
+		PostTestLabels[PostTestItem_codes.indexOf("RAI")] = ["","Not Important","Slightly","Moderately","Important","Very Important",""];
+		PostTestQuestions[PostTestItem_codes.indexOf("ToII")] = "How important is the aspect <b>Type of Input</b> for you?";
+		PostTestLabels[PostTestItem_codes.indexOf("ToII")] = ["","Not Important","Slightly","Moderately","Important","Very Important",""];
+		PostTestQuestions[nPostTestItems-1] = "Which other aspects do you consider to be important?";
+			
+	</script>
+	
+	<!-- functions to read and store answers -->
+	<script type="text/javascript">
+		function submitButtonState()
+		{					
+			// search for submit button
+			btn = document.getElementById('submitButton');
+
+			if (btn != null)
+			{
+				answered = true;
+				var newEntry = false;
+				var newPostTestEntry = false;
+				var newEntryIdx = 0;
+				var newPostTestEntryIdx = 0;
+				
+				<!-- check if experience questions are answered -->
+				for (var p = 0; p < nItems; p++){
+					for (var q = 0; q < (nConditions*nGames); q++){
+						fieldVal = -1;
+						<!-- read ration button question (QOE) -->
+						var myAnswerElement = document.getElementsByName(items[q][p]);
+						for (var i = 0, length = myAnswerElement.length; i < length; i++)
+						{
+							if (myAnswerElement[i].checked)
+							{
+								fieldVal = i + 1;
+								break;
+							}
+						}
+						
+						answers[q][p] = fieldVal;
+						if (!(fieldVal == answers_log[q][p])){
+							newEntry = true;
+							newEntryIdx = q;
+						}
+						if (fieldVal == -1 || fieldVal == "" || fieldVal == "-1")
+							answered = false;
+					}
+				}
+				
+				<!-- check if post-test questions are answered -->
+				for (var p = 0; p < nPostTestItems; p++){
+					if (document.getElementById(PostTestItems[p]) != null)
+						fieldVal = document.getElementById(PostTestItems[p]).value;
+					else
+						fieldVal = -1;
+					PostTestAnswers[p] = fieldVal;
+					if (!(fieldVal == PostTestAnswers_log[p]) & !(fieldVal = "Please type a possible answer here.")){
+						newPostTestEntry = true;
+						newPostTestEntryIdx = 0;
+					}
+					if (fieldVal == -1 || fieldVal == "")
+						answered = false;
+				}
+			
+				<!-- check if demographic questions are answered -->
+				var DemoData = [PID.value, YearofBirth.value, document.querySelector('input[name="Gender"]:checked').value, VideoGameUsage.value, VideoGameFreq.value, GamingExpertise.value, LikePlaying.value, NumberGames.value, DelayAware.value, GamesRegularyPlayed.value];
+				for (var p = 0; p < DemoData.length; p++){
+					if (DemoData[p] == "")
+						answered = false;
+				}
+				
+				<!-- show next item if question is answered -->
+				if (newEntry)
+				{
+					plusSlides(1,newEntryIdx);
+					console.log(answers);
+				}
+				
+				if (newPostTestEntry)
+				{
+					plusPostTestSlides(1,newPostTestEntryIdx);
+					console.log(PostTestAnswers);
+				}
+				
+				<!-- store the answers in the log for comparison with new answer -->
+				for (var p = 0; p < nItems; p++)
+					for (var q = 0; q < (nConditions*nGames); q++)
+						answers_log[q][p] = answers[q][p];
+				for (var p = 0; p < nPostTestItems; p++)
+						PostTestAnswers_log[p] = PostTestAnswers[p];
+						
+				<!-- if all items are answered, enable the submit button -->
+				btn.disabled = !answered;
+			}
+		}
+				
+
+		function storeData(){
+			
+			var DemoData = [PID.value, YearofBirth.value, document.querySelector('input[name="Gender"]:checked').value, VideoGameUsage.value, VideoGameFreq.value, GamingExpertise.value, LikePlaying.value, NumberGames.value, DelayAware.value, GamesRegularyPlayed.value];
+			var DemoItems = ["PID", "YearofBirth", "Gender", "VideoGameUsage", "VideoGameFreq", "GamingExpertise", "LikePlaying", "NumberGames", "DelayAware","GamesRegularyPlayed"]
+			
+			<!-- array for ratings -->
+			var OriginalPostTestItem_codes = ["SAI","TAI","PRI", "DoFI","FFI","CQI","IoAI","RAI","ToII", "Open"];
+			var LogData = new Array((nConditions*nGames+1));
+			for (var n = 0; n < (nConditions*nGames+1); n++)
+				LogData[n] = new Array((DemoData.length + nItems + nPostTestItems));
+				
+			<!-- item codes	as table header -->
+			LogData[0] = DemoItems.concat(item_codes.concat(OriginalPostTestItem_codes));
+			
+			<!-- reorder post-test answers -->
+			var OrderedPostTestAnswers = new Array(nPostTestItems);
+			for (var i = 0; i < nPostTestItems; i++)
+				OrderedPostTestAnswers[i] = PostTestAnswers[PostTestItem_codes.indexOf(OriginalPostTestItem_codes[i])];
+			
+			<!-- store data of all scales -->
+			for (var i = 0; i < (nConditions*nGames); i++)
+				LogData[i+1] = DemoData.concat(answers[i].concat(OrderedPostTestAnswers));
+			
+			var dateNow = new Date().toLocaleString();
+			var filename = "p" + PID.value + "_" + dateNow;
+			console.log(LogData);
+			exportToCsv(filename+'.csv', LogData)
+		}
+		
+		<!-- check answers every second (started on page load) -->
+		$(function() {
+			setInterval(submitButtonState, 1000);
+		});
+	</script>
+</head>
+
+<body>
+	<!-- ######### Study Instructions -->
+	<section class="container" id="intro">
+		<div class="panel panel-primary">
+			<div class="panel-heading"><strong>Instructions</strong></div>
+
+			<div class="panel-body">
+				<p>
+					<b>Welcome!</b>
+					<ul type="square">
+						<li>This study aims to assess the game characteristics that make a game more sensitive to delay in Cloud Gaming.</li>
+						<li>During this study you will watch a video and a short description for each game scenario.</li>
+						<li>Then you will be asked to judge different characterstics of that game scenario.</li>
+						<li>You can watch the videos as many times as you want and think over the characteristics. </li>
+						<li>Your responses to the questionnaires will be used for scientific research.</li>
+						<li>For this reason, <u>please treat them very serious to contribute with valid results.</u></li>
+						<li>The estimated time duration of the study is <b>90 minutes</b>.</li>
+					</ul>
+				</p>
+
+				<p>
+					<b>Procedure:</b>
+					<p>The experiment consists of four sub-tasks.<br>The tasks 2 and 3 will be repeated for all 30 games.</p>
+					<br>
+					<div style="margin-left: 40px">
+						<b>Task 1:</b>
+						<ul type="square">
+							<li>Answer a pre-test questionnaire about demographic questions.</li>
+						</ul>
+						<b>Task 2:</b>
+						<ul type="square">
+							<li>Read a short description about the game scenario</li>
+							<li>Watch a video of the game scenario.</li>
+						</ul>
+						<b>Taks 3:</b>
+						<ul type="square">
+							<li>Answer some questions regarding different characterstics of each game scenario.</li>
+						</ul>
+						<b>Taks 4:</b>
+						<ul type="square">
+							<li>Answer a post-test questionnaire by the end of the experiment.</li>
+						</ul>
+					</div>
+					<br>
+				</p>	
+			</div>
+		</div>
+	</section>
+	<!-- End Study Instructions -->
+
+	
+	<!-- ######### Demographics ######### -->
+	<section class="container" id="demo">
+		<div class="panel panel-primary">
+			<div class="panel-heading">	<b>Demographic Questions</b> </div>
+
+			<fieldset>
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<label>Participant ID</label>
+						<input class="form-control" id="PID" name="PID" required="" />
+					</div>
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<label>1. What is your Year of Birth?</label>
+						<input class="form-control" id="YearofBirth" name="YearofBirth" required="" />
+					</div>
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<div class="panel panel-default">
+					<div class="panel-body"><label>2. What is your gender? </label>
+						<div class="radio"><label><input id="Gender" name="Gender" required="" type="radio" value="Female" checked="checked" />Female </label></div>
+						<div class="radio"><label><input id="Gender" name="Gender" required="" type="radio" value="Male" />Male </label></div>
+						<div class="radio"><label><input id="Gender" name="Gender" required="" type="radio" value="Transgender" />Transgender</label></div>
+						<div class="radio"><label><input id="Gender" name="Gender" required="" type="radio" value="Other" />Prefer not to say </label></div>
+					</div>
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<label>3. Roughly how many hours per week do you spend on playing video games?</label>
+						<select class="form-control" id="VideoGameUsage" name="VideoGameUsage" required="">
+							<option selected="selected" value="">- select one -</option>
+							<option value="0">Between 0 to 1 hours</option>
+							<option value="1">Between 1 to 5 hours</option>
+							<option value="5">Between 5 to 10 hours</option>
+							<option value="10">Between 10 to 20 hours</option>
+							<option value="20">More than 20 hours</option>
+						</select>
+					</div>
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<label>4. Roughly how often do you spend on playing video games in a week?</label>
+						<select class="form-control" id="VideoGameFreq" name="VideoGameFreq" required="">
+							<option selected="selected" value="">- select one -</option>
+							<option value="0">Never</option>
+							<option value="1">Between 1 to 3 times a week</option>
+							<option value="3">Between 3 to 7 times a week</option>
+							<option value="7">Between 7 to 14 times a week</option>
+							<option value="14">More than 14 times week</option>
+						</select>
+					</div>
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<label>5. How would you describe your gaming experience (expertise)?</label>
+						<select class="form-control" id="GamingExpertise" name="GamingExpertise" required="">
+							<option selected="selected" value="">- select one -</option>
+							<option value="1">1 - Beginner</option>
+							<option value="2">2</option>
+							<option value="3">3 - Intermediate</option>
+							<option value="4">4</option>
+							<option value="5">5 - Expert</option>
+						</select>
+					</div>
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<label>6. I like playing video games.</label>
+						<select class="form-control" id="LikePlaying" name="LikePlaying" required="">
+							<option selected="selected" value="">- select one -</option>
+							<option value="1">1 - Strongly Disagree</option>
+							<option value="2">2 - Disagree</option>
+							<option value="3">3 - Undecided</option>
+							<option value="4">4 - Agree</option>
+							<option value="5">5 - Strongly Agree</option>
+						</select>
+					</div>
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<label>7. How many different games did you play so far?</label>
+						<select class="form-control" id="NumberGames" name="NumberGames" required="">
+							<option selected="selected" value="">- select one -</option>
+							<option value="0">Less than 5</option>
+							<option value="5">More than 5</option>
+							<option value="20">More than 20</option>
+							<option value="50">More than 50</option>
+						</select>
+					</div>
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<label>8. I am well aware of the impact of delay in online and cloud gaming?</label>
+						<select class="form-control" id="DelayAware" name="DelayAware" required="">
+							<option selected="selected" value="">- select one -</option>
+							<option value="1">1 - Strongly Disagree</option>
+							<option value="2">2 - Disagree</option>
+							<option value="3">3 - Undecided</option>
+							<option value="4">4 - Agree</option>
+							<option value="5">5 - Strongly Agree</option>
+						</select>
+					</div>
+				</div>
+			</fieldset>
+
+			<fieldset>
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<label>9. Please name a few of the games you regularly play(ed)?</label>
+						<input class="form-control" id="GamesRegularyPlayed" name="GamesRegularyPlayed" required="" />
+					</div>
+				</div>
+			</fieldset>
+		</div>
+	</section>
+	<!-- ######### End Demographics ######### -->
+	
+	<!-- Questionnaire Instructions -->
+	<section class="container" id="survey_intro">
+		<div class="panel panel-primary">
+			<div class="panel-heading"><strong>Questionnaire Instruction</strong></div>
+
+			<div class="panel-body" id="trainScale">
+
+
+<p><strong></strong></p>
+<p align="justify">
+This study aims to assess the game characteristics that make a game more sensitive to delay in Cloud Gaming. Cloud Gaming means games are running in a cloud server, and the video of the game is streaming to the clients via a network. Additionally, the user’s inputs such as mouse and keyboards are sent back to the cloud server, so unlike the online gaming where part of the game was running in your local device here everything is in the server and if there would be any delay all of your actions are delayed. <br><br>
+Delay reduces players performance and it strongly annoys them. But games have different tolerance to delay. In some games having even a little amount of delay is not acceptable while in some games, playing with delay won’t cause serious problem. For example, high delay in a shooting game would lead to missing a shot and giving the opportunity to the enemy to shoot at you, while in a turn-based game like Chess having even a higher level of delay won’t make a problem as you can perform the same action again without losing any score.<br><br>
+We identified some characteristics that influence the delay sensitivity and now we are asking you to rate each of these characteristics in different game scenarios. Below there is a short description of each of these characteristics.<br>
+
+<hr size="55" />
+<p><strong>1- Temporal Accuracy</strong></p>
+<p align="justify">Temporal Accuracy describes the available time interval for a player to perform a desired interaction. The time interval is strongly dependent on the mechanics and pace of a game scenario. In other words, this game characteristic describes the available reaction time of a player. <br />
+ In a jump and run game scenario for example, there is a point A, which marks the earliest point a player could perform a successful jump, and a point B, which marks the latest point a player could perform a successful jump. Depending on the distance between these two points and the speed of the character, there is an available time interval to perform the jump successfully. This example is illustrated in Fig. 1A and Fig. 1B. If the time interval is short, we consider the game to require a high temporal accuracy to be played.<br />
+The characteristic should be quantified by using the 5-point category scale shown below. Here, an example for a game with an unlimited time interval to perform an interaction is chess. An example for a game with an extremely short available time interval, a shooting game can be considered, as often the player who reacts first (immediate) wins.</p>
+<p align="justify"><br />
+</p>
+<p><strong>How do you judge the available time interval for players to perform the desired interaction in this game scenario?</strong></p>
+<ul>
+  <li><strong>Unlimited</strong>: Chess or other turn-based games</li>
+  <li><strong>Long</strong>: A slow version of PONG where you have plenty of time to position the paddle (multiple seconds)</li>
+  <li><strong>Moderate</strong>: The jumping game in figure B where you have more than enough time to react  (around a second)</li>
+  <li><strong>Short</strong> : The jumping game in figure A (less than a half second)</li>
+  <li><strong>Extremely</strong> short: A shooting game where if an enemy suddenly appears and if you don’t shoot at the enemy first enemy will shoot at you!<br />
+    <br />
+    <p align="center"> <img src="Definitions/Animations/LOW3.gif" width="478" height="162" /><img src="Definitions/Animations/High.gif" width="478" height="162" /></p>
+	<p align="center"><font size="2"> Figure 1A: Slow pace, you have a long interval to jump       &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;        Figure 1B: Fast pace, you have a short interval to jump </font></p>
+    <br />
+  </li>
+</ul>
+
+
+<hr size="5" />
+<p><strong> 2- Spatial Accuracy</strong></p>
+<p align="justify">The spatial accuracy is the degree of precision required to complete an interaction successfully. <br />
+  Typically, game scenarios in which the player has to select (or point at) on object precisely, or in which precise movements are necessary, require a high spatial accuracy. However, this characteristic often strongly depends on the size of the controlled object (e.g., a character or curser) and the size of objects to interact with (e.g., a target or platform). In a shooting game scenario for example, the position of the cursor controlling a sniper riffle has to be much more precise than compared to a flame thrower, due to their different impact radius. For the latter scenario, a lower spatial accuracy is needed, as the radius is much larger. This example is illustrated in Fig. 2.<br />
+The characteristic should be quantified by using the 4-point category scale shown below. Here, an example for a game scenario not requiring any precision is a Flipper game, as here only the timing of the paddle movement is important. Using a sniper weapon in a shooting game scenario, would be an example for a game scenario which requires a high spatial accuracy.</p>
+<p><strong>How much spatial accuracy to successfully perform an interaction is required in this game scenario?</strong></p>
+<ul>
+  <li><strong>No accuracy</strong>: A jumping game where you just need to jump on time.</li>
+  <li><strong>Low accuracy</strong>: Like throwing a grenade in a large area of effect<br />
+  </li>
+  <li><strong>Moderate accuracy</strong>: Driving a car in a track with the normal size</li>
+  <li><strong>High accuracy</strong>: shooting with a sniper to an eneymy</li>
+</ul>
+<br />
+<p align="center"><img src="Definitions/SpatialAccuracy.png" alt="SpatialAccuracy" /></p></p>
+<p align="center"> <font size="2"> Figure 2: Different size of objects would lead to different spatial accuracy  </font> </p>
+
+
+<hr size="5" />
+<p><strong>3- Predictability</strong></p>
+<p align="justify">Predictability describes if a player is able to estimate the upcoming events in the game. This can for example relate to positions of objects (spatial) or time points of events (temporal).<br />
+  In a simple point and click game scenario as illustrated in Fig 3, where a player has to click on the moving squares, the movement path of an object could be linear (see Figure 3A), or random (see Figure 3B). In the linear mode, a player can easily predict where the object will be a second later. In this case, a player can adapt and select the predicted/anticipated position to counter-balance a delay, which is not possible for a random movement. <br />
+  The characteristic should be quantified by using the 4-point category scale shown below. Here, an example for a game where no events requiring an interaction can be predicted is chess, whereas a game scenario with purely random movements as shown in Fig. 3B would be not predictable. <br />
+</p>
+<p><strong>How much are the events of this game scenario predictable for a player?</strong></p>
+<ul>
+  <li><strong>Nothing to predict: </strong>A game like Chess where there isn’t anything to predict in the action level</li>
+  <li><strong>Easy to predictable:</strong> A game that has linear movements (Figure A)</li>
+  <li><strong>Difficult to Predict: </strong>A game that the actions are hard to predict but possible</li>
+  <li><strong>Not predictable:</strong> the actions are pure random(Figure B)<br />
+    <br />
+    <p align="center"><img src="Definitions/Predictability.png"/></p>
+	<p align="center"><font size="2"> Figure 3A: Linear movement of objects   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;  Figure 3B: Random movement of objects</font> </p>
+  </li>
+</ul>
+<p><strong><br  /><hr size="5" />
+  4- Number of input directions
+  </strong>
+</p>
+<p align="justify">The number of possible input directions in a game scenario is known as Degree of Freedom (DoF). DoF consists of translations (back and forward, left and right, up and down) as well as rotations (vertical axis and height) for one or multiple input devices/elements. <br />
+  The characteristic should be quantified by using the 5-point category scale shown below. An example of a game scenario with DoF of 1, a jumping game where a player must simply jump (up) can be considered. In a jumping game where in addition to jumping a player can also go forward and backward, the DoF is 3. In a shooting game where a player can go in 4 different directions with a keyboard and 4 different directions with a mouse, the DoF is 8.<br />
+<p align="justify"><strong>How many different input directions (DoF) are available in this game scenario?</strong><br />
+  <ul>
+ <li> <strong>1</strong>: A jumping game where you can just jump up</li>
+  <li><strong>2:</strong> A racing game where you can just go left and right</li>
+ <li><strong> 3:</strong> A jumping game that in addition to jumping up you can go left and right</li>
+ <li> <strong>4:</strong> A racing game where in addition to the left and right you have control on the acceleration/forward and brake/backward </li>
+  <li><strong>More than 4:</strong> A shooting game that you can walk and shoot with your mouse</li> 
+</ul>
+</p>
+
+<hr size="5" />
+<strong>5- Consequences</strong><br />
+<p align="justify"> How strong a delayed interaction influences a user’s experience, often depends on the negative consequences. Such consequences could be the loss of  progress, points, and rewards. <br />
+The characteristic should be quantified by using the 3-point category scale shown below. In a scenario without negative consequences of an incorrect interaction or in which the game status is only worse but it is still realistic to win (e.g. chess or racing game), the consequences are low. If an incorrect interaction would result in a situation in which the game is difficult to win afterwards, the consequences are medium. Lastly, if an incorrect interaction immediately results in losing the game (e.g. jump and run in which a collision with an object directly lead to losing), the negative consequences are high.<br />
+<p align="justify">
+<p align="justify"><strong>How strong are the negative consequences of an incorrect interaction in this game scenario?</strong><br />
+<ul>
+<li><strong>Low</strong> No punishment, e.g. Chess where you can perform the interaction again and it would not degrades your scores!</li>
+<li><strong>Medium</strong> Losing some scores or progress, e.g. Racing game where you will lose some time but you can still continuo</li>
+<li><strong>High</strong> Losing the game, e.g. Jumping game where you will lose the game if you don't jump!</li>
+</ul>
+</p>
+<P align="right">  <img src="Definitions/Animations/Consequence.gif" alt="" width="339" height="116" /></p>
+<p align="right"> <font size="2"> Figure 4: A single misplay would lead to game over  </font> </p>
+
+
+<hr size="5" />
+<strong>6- Importance of Actions</strong><br />
+<p align="justify">
+There are games in which every input of the user can significantly change the outcome of the game. In many jump and run game scenarios for example, it is critical that a player performs a jump correctly, otherwise this would results in losing the game. However, in a racing game or strategy game, many inputs do not directly lead to a strong change of the game state, for example when selecting units or looking at a map.<br>
+The characteristic should be quantified by using the 3-point category scale shown below. Exploring a game world or looking at a map would be a scenario with a low importance of actions. Selecting units in a strategy game or shooting with a weapon which has a high shooting rate (e.g., a minigun), can be considered as moderately important actions. A jump and run game scenario or shooting at a target with a weapon which has a low shooting rate (e.g., a sniper) would mainly consist of highly important actions.
+
+</p>
+<p align="justify">
+<strong>How much each input of this game scenario can change its outcome?</strong><br />
+<ul>
+<li><strong>Low</strong>: looking at a map</li>
+<li><strong>Medium</strong>: selection units in a strategy game</li>
+<li><strong>High</strong>: shooting with a sniper every 2 seconds</li>
+</ul>
+</p>
+
+
+<hr size="5" />
+<strong>7- Number of Required Actions</strong><br />
+<p align="justify">
+The number of required actions and with that also the number of inputs a player performs in a certain time frame may influence the perception of a network delay. The characteristic could also be described as the minimum actions per minute (APM) to player the game scenario. It is assumed that a higher number of required action will lead to more user inputs and thus, more situation in which a player can perceive a delay. The number of objects to react to or the pace of the game can influence also the number of required actions.<br>
+The characteristic should be quantified by using the 3-point category scale shown below. A game scenario with a low number of required actions would be puzzle games, in which every few seconds an action is performed. A game scenario which requires an interaction every 1-2 seconds should be considered as moderate in terms of number of required actions. Lastly, a scenarios in which more than one interaction is required every second, should be rated as a scenarios with a high number of required actions.
+
+</p>
+<p align="justify">
+<strong>How do you judge the number of required actions in this scenario?</strong><br />
+<ul>
+<li><strong>Low</strong>: Candy Crush</li>
+<li><strong>Moderate</strong>: slow pace jump and run game</li>
+<li><strong>High</strong>: team fight in MOBA games</li>
+</ul>
+</p>
+<P align="right">  <img src="Definitions/RoI.jpg" width="40%" /></p>
+<P align="right"><font size="2"> Figure 5: (a) Low number of required actions (b) higher number of required actions</font></p>
+
+<hr size="5" />
+<strong>8- Feedback Frequency</strong><br />
+<p align="justify">
+Feedback frequency means how often the game gives visual, auditive, or haptic feedback to the player. A player’s input frequency may influence the degree to which he perceives a possible delay. For example, if player keeps moving a delayed mouse cursor he will always perceive the delayed movement but if he only sometimes presses a key to jump, then the feedback will only be delayed in this moment. Here, the jump of the character is a visual feedback provided by the game.<br>
+The characteristic should be quantified by using the 3-point category scale shown below.
+<br/>
+<p align="justify">
+<strong>How often does the game scenario provide feedback to the player?</strong><br />
+<ul>
+<li><strong> Rarely</strong>: a game with mainly continuous inputs</li>
+<li> <strong>Sometimes</strong>: a game with frequent inputs</li>
+<li><strong> Very Often </strong>: a game scenario showing a mouse cursor</li>
+</ul>
+</p>			
+
+
+<hr size="5" />
+<strong>9- Type of input </strong><br />
+<p align="justify">
+Type of the input that a game have give to the game can be different. In some games, players are continuously giving input, for example in a shooting game where players are always moving their mouse. Some games have discrete inputs meaning that players interact using pressing a button, for example a jumping game where players must jump using pressing a key. In games with Quasi-Continuous inputs players interact with the game using holding a key or constantly pressing a key, for example in Tekken where the player is constantly executing the same technique.<br>
+The characteristic should be quantified by using the 5-point category scale shown below.
+
+<br />
+</p>
+<p align="justify">
+<strong>How do you assess the type of user actions in this game ?</strong><br />
+<ul>			
+<li> <strong>Quasi-Continuous </strong>: Holding a key or pressing a key very frequently (e.g. Mario Party)</li>
+<li> <strong>Quasi-Continuous and discrete:</strong> Racing game playing with tabbing style</li>
+<li> <strong>Only Discrete input type:</strong> Pressing a button (jump and run game where character is always running)</li>
+<li> <strong>Only Continuous input type:</strong> only aiming at a target with cursor or following a path with a mouse</li>
+<li><strong>Continuous and Discrete</strong>: aiming and shooting in a shooting game scenario
+</li>	
+</ul>
+</p>			
+				
+	</div>
+	</div>
+	</section>
+	<!-- End Questionnaire Instructions -->
+	
+	
+	<!-- Create Game Experience Scales for each game -->
+	<script>			
+		<!-- create items, elements, and default answer log for experience questionnaire-->
+		var items = new Array((nConditions*nGames));
+		var elements = new Array((nConditions*nGames));
+		var answers = new Array((nConditions*nGames));
+		var answers_log = new Array((nConditions*nGames));
+		
+		for (var n = 0; n < (nConditions*nGames); n++){
+			items[n] = new Array(nItems);
+			elements[n] = new Array(nItems);
+			answers[n] = new Array(nItems);
+			answers_log[n] = new Array(nItems);
+		}
+		
+		for (var n = 1; n <= (nConditions*nGames); n++){
+			for (var m = 0; m < nItems; m++){
+				items[n-1][m] = "Q_" + item_codes[m] + "_" + n;
+				elements[n-1][m] = item_codes[m] + "_" + n;
+				answers_log[n-1][m] = -1;
+			}
+		}
+		
+		<!-- Slide navigation -->
+		var slideIndex = new Array((nConditions*nGames));
+		for (var i = 0; i < (nConditions*nGames); i++){
+			slideIndex[i] = i*nItems + 1;
+		}
+		
+		for (var j = 0; j < nGames; j++){		
+			<!-- Create the Scales -->
+			var GameSectionRoot = document.createElement("SECTION");
+			GameSectionRoot.setAttribute("class", "container");
+			GameSectionRoot.setAttribute("id", "game_" + j);
+			document.body.appendChild(GameSectionRoot);		
+			
+			var GameSectionPanel = document.createElement("div");
+			GameSectionPanel.setAttribute("class", "panel panel-default");
+			GameSectionRoot.appendChild(GameSectionPanel);
+			
+			var GameSectionHeader = document.createElement("div");
+			GameSectionHeader.setAttribute("class", "panel-heading");
+			GameSectionPanel.appendChild(GameSectionHeader);
+			var gameIdx = j + 1; 
+			GameSectionHeader.innerHTML = "<h3><b>Game "+ gameIdx + " / " + nGames + " </h3>   ";
+			
+			GameSectionBody  = document.createElement("div");
+			GameSectionBody.setAttribute("class", "panel-body");
+			GameSectionBody.setAttribute("id", "scale_" + j);
+			GameSectionPanel.appendChild(GameSectionBody);
+			
+			var ScaleDescriptionRoot = document.createElement("section");
+			ScaleDescriptionRoot.setAttribute("class", "panel-body");
+			ScaleDescriptionRoot.setAttribute("id", "scale_" + j);
+			GameSectionBody.appendChild(ScaleDescriptionRoot);
+			
+			var ScaleIntro = document.createElement("div");
+			ScaleIntro.innerHTML ="<img src = './Game/" + gameIdx +  ".jpg'  alt='Description' /><br /><video width = '960' height = '540' controls><source src = './Game/" + gameIdx +  ".mp4' type = 'video/mp4'>";
+
+			ScaleIntro.setAttribute("align", "center");
+			ScaleDescriptionRoot.appendChild(ScaleIntro);
+				
+			for (let z = j*nConditions; z < (j+1)*nConditions; z++)
+			{				
+				var ConditionPanel = document.createElement("div");
+				ConditionPanel.setAttribute('class', 'panel panel-primary');
+				GameSectionBody.appendChild(ConditionPanel);
+				
+				var ConditionHeader = document.createElement("div");
+				ConditionHeader.setAttribute("class", "panel-heading");
+				var ConditionIdx = (z % nConditions) + 1;
+				ConditionHeader.innerHTML = "<b>Answer the following questions</b>";
+				ConditionPanel.appendChild(ConditionHeader);
+				
+				var ConditionBody = document.createElement("div");
+				ConditionBody.setAttribute("class", "panel-body");
+				ConditionPanel.appendChild(ConditionBody);
+				
+				var ScaleRoot = document.createElement("div");
+				ScaleRoot.setAttribute("class", "slideshow-container");
+				ScaleRoot.setAttribute("id", "Condition" + z);
+				ConditionBody.appendChild(ScaleRoot);
+				
+				<!-- Item Counter -->
+				var ItemCounterDIV = document.createElement("div");
+				ItemCounterDIV.setAttribute("class", "numbertext");
+				ScaleRoot.appendChild(ItemCounterDIV);	
+				newCounter = document.createElement('div');
+				newCounter.setAttribute("id", "newCounter" + z);
+				ItemCounterDIV.appendChild(newCounter)	
+				
+				<!-- Arrow Left	-->
+				var MyArrowL = document.createElement("a");
+				MyArrowL.setAttribute('class', 'prev');
+				MyArrowL.setAttribute('onclick', 'plusSlides(-1,'+z+')');
+				// could add "display: none" here for multiple Conditions
+				MyArrowL.innerHTML = "&#10094;";
+				ScaleRoot.appendChild(MyArrowL);
+				
+				<!-- Arrow Right -->		
+				var MyArrowR = document.createElement("a");
+				MyArrowR.setAttribute('class', 'next');
+				MyArrowR.setAttribute('onclick', 'plusSlides(1,'+z+')'); 
+				MyArrowR.innerHTML = "&#10095;";
+				ScaleRoot.appendChild(MyArrowR);   						
+				
+				<!-- Item Loop -->
+				var R_idx = z + 1;	
+				for (let i = 0; i < nItems; i++)
+				{
+					var MainNode = document.createElement("div");
+					MainNode.setAttribute("class", "mySlides");
+					ScaleRoot.appendChild(MainNode);			
+					
+					<!-- Scale 1 -->
+					var ConditionBody = document.createElement("div");
+					ConditionBody.setAttribute("class", "panel-body");
+					ConditionBody.setAttribute("style", "text-align: center");
+					MainNode.appendChild(ConditionBody);		
+					var Question_label = document.createElement("label");
+					Question_label.setAttribute("style", "vertical-align: middle");
+					Question_label.innerHTML = "<br>" + questions[i];
+					ConditionBody.appendChild(Question_label);		
+					var RowDiv = document.createElement("div");			
+					RowDiv.setAttribute("class","row align-items-center");
+					ConditionBody.appendChild(RowDiv);				
+					
+					<!-- Labels for Radiobuttons -->
+					<!-- https://getbootstrap.com/docs/4.1/layout/grid/ -->
+					var RowLabels = document.createElement("div");
+					RowLabels.setAttribute("class","col center-block");
+					RowLabels.setAttribute("style","float:none");
+					RowDiv.appendChild(RowLabels);	
+					
+					var row_size = Math.floor(12/labels[i].length);
+					
+					for (r = 0; r < labels[i].length; r++)
+					{
+						var Label = document.createElement("div");
+						<!-- for 3 --> 12 (default) and 4
+						<!-- for 5 --> 12 (default) and 2
+						Label.setAttribute("class", "col-sm-" + row_size + " radiostyle");
+						RowLabels.appendChild(Label);
+						var LabelText = document.createElement("label");
+						LabelText.innerHTML = labels[i][r];
+						LabelText.setAttribute("style", "font-weight:normal");
+						Label.appendChild(LabelText);
+					}	
+					
+					<!-- Radio Buttons 1 -->
+					var RowDiv = document.createElement("div");		
+					RowDiv.setAttribute("class","row align-items-center");
+					ConditionBody.appendChild(RowDiv);
+					var RawRadios = document.createElement("div");
+					RawRadios.setAttribute("class","col center-block");
+					RawRadios.setAttribute("style","float:none");
+					RowDiv.appendChild(RawRadios);	
+					for (r = 1; r <= labels[i].length; r++)
+					{
+						var Radio = document.createElement("div");
+						Radio.setAttribute("class", "col-sm-" + row_size + " radiostyle");
+						RawRadios.appendChild(Radio);
+						var RawRadiosInput = document.createElement("input");
+						RawRadiosInput.setAttribute("type", "radio");
+						RawRadiosInput.setAttribute("name", "Q_" + item_codes[i] + "_" + R_idx);
+						RawRadiosInput.setAttribute("id", "Q_" + item_codes[i] + "_" + R_idx + "_" + r);
+						Radio.appendChild(RawRadiosInput);
+					}
+				}			
+			}
+		}
+		showSlides();
+	</script>	
+	<!-- End Game-Experience Questionnaire -->
+		
+	<!-- Post-test Questionnaire -->			
+	<section class="container" id="PostTestSection">
+		<div class="panel panel-primary" id="PostTestScale">
+			<div class="panel-heading"><strong>Post-test Questionnaire</strong></div>
+			<div>				
+				<p>
+					<ul type="square">
+						<li>In the follwing, we would like you to tell us about your judgement criteria.</li>
+						<li>Please indicate on the scales below, how important the listed aspects are for your rating of the <b>Delay Sensetivity</b>.</li>
+					</ul>
+				</p>
+			</div>
+			<br>
+			<script>	
+				<!-- create items, elements, and default answer log -->
+				var PostTestSlideIndex = 1;	
+				var PostTestItems = new Array(nPostTestItems);
+				var PostTestElements = new Array(nPostTestItems);
+				var PostTestAnswers = new Array(nPostTestItems);
+				var PostTestAnswers_log = new Array(nPostTestItems);
+				
+				for (var m = 0; m < nPostTestItems; m++){
+					PostTestItems[m] = "PTIdx_" + PostTestItem_codes[m];
+					PostTestElements[m] = "PTEle_" + PostTestItem_codes[m];
+					PostTestAnswers_log[m] = -1;
+				}
+								
+				var PostTestRoot = document.createElement("div");
+				PostTestRoot.setAttribute("class", "slideshow-container4");
+				PostTestRoot.setAttribute("id", "PostTestCondition");
+				var PostTestID = document.getElementById("PostTestScale");
+				PostTestID.appendChild(PostTestRoot);
+				
+				<!-- Item Counter -->
+				var ItemCounterDIV = document.createElement("div");
+				ItemCounterDIV.setAttribute("class", "numbertext");
+				PostTestRoot.appendChild(ItemCounterDIV);	
+				newCounter = document.createElement('div');
+				newCounter.setAttribute("id", "PostTestCounter");
+				ItemCounterDIV.appendChild(newCounter)	
+				
+				<!-- Arrow Left	-->
+				var MyArrowL = document.createElement("a");
+				MyArrowL.setAttribute('class', 'prev');
+				MyArrowL.setAttribute('onclick', 'plusPostTestSlides(-1)');
+				MyArrowL.innerHTML = "&#10094;";
+				PostTestRoot.appendChild(MyArrowL);
+				
+				<!-- Arrow Right -->		
+				var MyArrowR = document.createElement("a");
+				MyArrowR.setAttribute('class', 'next');
+				MyArrowR.setAttribute('onclick', 'plusPostTestSlides(1)'); 
+				MyArrowR.innerHTML = "&#10095;";
+				PostTestRoot.appendChild(MyArrowR);   						
+				
+				<!-- Item Loop -->
+				for (let i = 0; i < nPostTestItems; i++)
+				{
+					var MainNode = document.createElement("div");
+					MainNode.setAttribute("class", "myPostTestSlides");
+					PostTestRoot.appendChild(MainNode);			
+						
+					<!-- Read Answer on change -->
+					var MyElementsDiv = document.createElement("div");
+					MyElementsDiv.setAttribute("id", PostTestElements[i]);
+					MyElementsDiv.setAttribute("class", "screenContainer");
+					if (i < (nPostTestItems - 1)){
+						var MyInput = document.createElement("input");
+						MyInput.setAttribute('id', PostTestItems[i]);
+						MyInput.setAttribute('name', PostTestItems[i]);
+						MyInput.setAttribute('type', 'hidden');
+						MyInput.setAttribute('value', '-1');
+						MainNode.appendChild(MyInput);	
+						
+						ue = new QuestionnaireItemQuality7pt(undefined, PostTestQuestions[i], true, PostTestLabels[i]);
+						MyElementsDiv.appendChild(ue.createUI());
+						ue.setEnabled(true);
+						f = function (item) {	
+							myItem = PostTestItems[i];
+							myItem = document.getElementById(myItem);
+							myItem.value = item.getAnswer();
+						};
+						ue.setOnReadyStateChangedCallback(f);	
+					}else{		
+						var OpenPostQuestion = document.createElement("div");
+						OpenPostQuestion.setAttribute("class", "panel panel-default");				
+						MyElementsDiv.appendChild(OpenPostQuestion);
+						var OpenPostBody = document.createElement("div");
+						OpenPostBody.setAttribute("class", "panel-body");				
+						OpenPostQuestion.appendChild(OpenPostBody);
+						var OpenPostLabel = document.createElement("label");
+						OpenPostLabel.innerHTML = PostTestQuestions[i];
+						OpenPostBody.appendChild(OpenPostLabel);
+						var OpenPostInput = document.createElement("input");
+						OpenPostInput.setAttribute("class", "form-control");
+						OpenPostInput.setAttribute('value', 'Please type a possible answer here.');
+						OpenPostInput.setAttribute('onclick', 'DeleteOpenAnswer()');
+						OpenPostInput.setAttribute("id", PostTestItems[i]);
+						OpenPostInput.setAttribute("name", PostTestItems[i]);
+						OpenPostInput.setAttribute("required", "");
+						OpenPostBody.appendChild(OpenPostInput);					
+					}
+					MainNode.appendChild(MyElementsDiv);		
+				}
+				showPostTestSlides()
+			</script>		
+		</div>
+	</section>
+	
+	<section class="container" id="SubmitPanel">
+		<div class="panel panel-primary">
+			<div class="panel-heading" onclick="storeData();"><b>Submit Answers</b></div>
+
+			<fieldset>
+				<div class="col-md-12 text-center" style="margin-top:20px">
+					<p>The Submit Button will only appear if you have answered all questions.<br>If you did, please press it in order to finish the experiment.</p><br>
+					<button ID="submitButton" type="button" value="disable" disabled="disabled" class="btn btn-info" onclick="storeData();"> Submit </button>
+				</div>
+				<br><br>
+			<fieldset>
+		</div>
+	</section>
+</body>

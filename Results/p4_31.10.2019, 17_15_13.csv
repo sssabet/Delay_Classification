@@ -1,0 +1,33 @@
+PID,Condition,YearofBirth,Gender,VideoGameUsage,VideoGameFreq,GamingExpertise,LikePlaying,NumberGames,DelayAware,GamesRegularyPlayed,DS,TA,SA,PR,DoF,CQ,IoA,RA,FF,ToI,SAI,TAI,PRI,DoFI,FFI,CQI,IoAI,RAI,ToII,Open
+4,22,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,2,3,2,4,1,2,1,1,4,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,5,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,4,3,3,1,3,3,2,3,3,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,6,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,5,3,5,5,2,2,3,3,5,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,21,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,2,2,2,4,2,1,1,3,4,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,14,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,4,3,5,4,3,3,2,3,4,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,27,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,3,3,2,1,3,3,1,2,3,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,11,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,3,3,3,4,1,1,1,3,4,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,15,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,3,2,5,4,3,3,1,2,2,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,9,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,2,2,3,4,1,1,1,3,4,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,29,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,2,2,5,2,1,1,1,1,2,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,7,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,5,1,4,4,2,2,2,2,1,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,18,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,2,1,1,2,1,1,1,1,2,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,25,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,4,3,3,1,3,3,2,1,3,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,13,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,2,2,3,4,1,1,1,3,2,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,17,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,2,2,2,2,1,1,1,3,2,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,23,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,4,3,3,1,3,3,1,2,3,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,30,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,5,4,5,5,2,2,3,3,5,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,4,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,3,1,1,4,2,2,2,2,2,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,26,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,4,3,3,1,3,3,3,2,3,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,16,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,3,2,3,4,1,1,1,3,2,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,20,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,2,2,2,2,1,1,1,1,5,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,19,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,2,1,2,2,1,1,1,1,2,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,1,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,1,1,1,4,1,1,1,1,4,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,28,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,2,2,4,2,1,1,1,1,2,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,10,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,3,3,4,4,2,2,2,3,4,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,8,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,2,4,5,4,2,2,2,2,5,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,2,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,4,1,4,5,2,2,3,3,5,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,12,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,4,3,4,4,3,2,1,3,4,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,3,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",1,2,1,1,1,1,1,1,2,4,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,24,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,3,3,3,1,3,3,1,1,3,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,0,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5",2,5,4,5,5,2,2,3,3,5,50,61,31,40,61,40,51,63,41,length of a match in a game
+4,99,2000,Male,5,7,5,5,20,4,"GTA V, Need for Speed Payback, Battlefield 5","Because it is a shooting game, when there is just a little lag in the game. Your enemy will have a chance to kill you.",Because we need to think of our next action instantly,"Because this is a shooting game, shooting always need high accuracy",The event is unpredictable because there's 100 player playing in the same arena,"it include right, left, forward, backward, jump, hide movement","when you missed a shot, that doesn't mean you lose the game","when you do the wrong input, that doesn't mean you lose the game",There's a bunch of action that we always need to take care of,"It's a first person shooting game, that means every action will get a instant feedback from the game",we need to continiously move the mouse and press the keyboard,50,61,31,40,61,40,51,63,41,length of a match in a game
